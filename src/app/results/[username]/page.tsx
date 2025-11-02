@@ -29,18 +29,6 @@ export default function ResultsPage() {
       try {
         setLoading(true);
         
-        // Try to get from stored data first
-        try {
-          const stored = await githubAPI.getRepoAnalyses(username);
-          // If we have stored data, use the latest deep analysis
-          if (stored && stored.repositories && stored.repositories.length > 0) {
-            // Construct a DeepAnalysis-like object from stored data
-            // This is a fallback; ideally we'd store the full deep analysis
-          }
-        } catch (e) {
-          // No stored data, will trigger new analysis below
-        }
-
         // Fetch fresh deep analysis
         const result = await githubAPI.analyzeDeep(username, 3);
         setData(result);
@@ -55,6 +43,41 @@ export default function ResultsPage() {
       fetchData();
     }
   }, [username]);
+
+  const handleShare = async () => {
+    const shareData = {
+      title: `${username}'s GitHub Analysis`,
+      text: `Authenticity Score: ${data?.overall_authenticity_score}/100`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
+  const handleExportJSON = () => {
+    if (!data) return;
+    const dataStr = JSON.stringify(data, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${username}-github-analysis.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportPDF = () => {
+    window.print();
+  };
 
   if (loading) {
     return (
@@ -86,7 +109,6 @@ export default function ResultsPage() {
     );
   }
 
-  // Collect all red flags from all repositories
   const allRedFlags = data.repository_analyses
     .flatMap((repo) => repo.analysis?.red_flags || []);
 
@@ -102,16 +124,37 @@ export default function ResultsPage() {
             <ArrowLeft className="w-5 h-5" />
             <span>Back to Search</span>
           </Link>
-
+          
           <div className="flex space-x-4">
-            <button className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:shadow-md transition-all">
+            <button 
+              onClick={handleShare}
+              className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:shadow-md transition-all"
+            >
               <Share2 className="w-4 h-4" />
               <span>Share</span>
             </button>
-            <button className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:shadow-md transition-all">
-              <Download className="w-4 h-4" />
-              <span>Export</span>
-            </button>
+            
+            <div className="relative group">
+              <button className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:shadow-md transition-all">
+                <Download className="w-4 h-4" />
+                <span>Export</span>
+              </button>
+              
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                <button
+                  onClick={handleExportJSON}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg text-gray-900 dark:text-white"
+                >
+                  Download JSON
+                </button>
+                <button
+                  onClick={handleExportPDF}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg text-gray-900 dark:text-white"
+                >
+                  Print as PDF
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -30,6 +29,20 @@ export default function Header() {
             >
               Analyze
             </Link>
+
+            <Link 
+              href="/compare"
+              className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+            >
+              Compare
+            </Link>
+
+            <Link 
+              href="/history"
+              className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+            >
+              History
+            </Link>
             
             <a
               href="https://github.com/yourusername/github-auditor"
@@ -38,7 +51,7 @@ export default function Header() {
               className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
               <Github className="w-5 h-5" />
-              <span className="font-medium">GitHub</span>
+              <span className="font-medium hidden md:inline">GitHub</span>
             </a>
 
             <Link
