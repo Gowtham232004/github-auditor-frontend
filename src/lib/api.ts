@@ -1,4 +1,4 @@
-﻿// lib/api.ts
+// lib/api.ts
 // API client for backend communication
 
 import axios from 'axios';
@@ -6,8 +6,6 @@ import { ProfileAnalysis, DeepAnalysis } from '@/types';
 
 // Use your Railway URL here!
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
-// Debug logging
 console.log(' API Configuration:');
 console.log('  NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
 console.log('  API_BASE_URL:', API_BASE_URL);
@@ -23,7 +21,7 @@ const api = axios.create({
 // Add request interceptor for logging
 api.interceptors.request.use(
   (config) => {
-    console.log(API Request:  );
+    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
   (error) => {
@@ -45,9 +43,8 @@ api.interceptors.response.use(
       throw new Error(error.response.data.detail || error.response.data.error || 'API request failed');
     } else if (error.request) {
       // Request made but no response
-      console.error('Network Error - Full details:', error);
-      console.error('Attempted URL:', API_BASE_URL);
-      throw new Error(Network error. Could not connect to backend at . Please check your connection.);
+      console.error('Network Error:', error.request);
+      throw new Error(Network error. Could not connect to backend at ${API_BASE_URL}. Please check your connection.);
     } else {
       // Something else happened
       console.error('Error:', error.message);
@@ -59,13 +56,13 @@ api.interceptors.response.use(
 export const githubAPI = {
   // Basic profile analysis
   analyzeProfile: async (username: string): Promise<ProfileAnalysis> => {
-    const response = await api.get(/analyze/);
+    const response = await api.get(`/analyze/${username}`);
     return response.data;
   },
 
   // Deep analysis with repository commits
   analyzeDeep: async (username: string, maxRepos: number = 3): Promise<DeepAnalysis> => {
-    const response = await api.get(/analyze-all/, {
+    const response = await api.get(`/analyze-all/${username}`, {
       params: { max_repos: maxRepos },
     });
     return response.data;
@@ -73,13 +70,13 @@ export const githubAPI = {
 
   // Get stored profile
   getProfile: async (username: string) => {
-    const response = await api.get(/profile/);
+    const response = await api.get(`/profile/${username}`);
     return response.data;
   },
 
   // Get repository analyses
   getRepoAnalyses: async (username: string) => {
-    const response = await api.get(/repo-analyses/);
+    const response = await api.get(`/repo-analyses/${username}`);
     return response.data;
   },
 
