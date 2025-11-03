@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { username: string } }
+  { params }: { params: Promise<{ username: string }> }
 ) {
-  const username = params.username;
+  const { username } = await params;
   
   // Fetch analysis from backend
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -123,10 +123,26 @@ export async function GET(
   } catch (error) {
     // Return error badge
     const errorSvg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="180" height="35">
-        <rect width="180" height="35" rx="5" fill="#ef4444"/>
-        <text x="90" y="22" font-family="Arial" font-size="14" fill="#fff" font-weight="bold" text-anchor="middle">
-          Not Analyzed
+      <svg xmlns="http://www.w3.org/2000/svg" width="240" height="120" viewBox="0 0 240 120">
+        <defs>
+          <linearGradient id="errorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#991b1b;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        
+        <rect width="240" height="120" rx="10" fill="url(#errorGrad)"/>
+        
+        <text x="120" y="50" font-family="'Segoe UI', Arial, sans-serif" font-size="16" fill="#fff" font-weight="bold" text-anchor="middle">
+          🔍 GitHub Auditor
+        </text>
+        
+        <text x="120" y="75" font-family="'Segoe UI', Arial, sans-serif" font-size="14" fill="#fff" text-anchor="middle">
+          @${username}
+        </text>
+        
+        <text x="120" y="95" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#fca5a5" text-anchor="middle">
+          Not Analyzed Yet
         </text>
       </svg>
     `;

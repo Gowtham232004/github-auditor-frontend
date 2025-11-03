@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowLeft, Download, Share2 } from 'lucide-react';
+import { ArrowLeft, Download, Mail, Share2 } from 'lucide-react';
 
-import { githubAPI } from '@/lib/api';
+import api, { githubAPI } from '@/lib/api';
 import { DeepAnalysis } from '@/types';
 
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -15,6 +15,7 @@ import ScoreGauge from '@/components/ScoreGauge';
 import RedFlagsList from '@/components/RedFlagsList';
 import RepoCard from '@/components/RepoCard';
 import StatsChart from '@/components/StatsCharts';
+import AIInsights from '@/components/AIInsights';
 
 export default function ResultsPage() {
   const params = useParams();
@@ -23,6 +24,9 @@ export default function ResultsPage() {
   const [data, setData] = useState<DeepAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -60,6 +64,31 @@ export default function ResultsPage() {
       }
     } catch (error) {
       console.error('Error sharing:', error);
+    }
+  };
+  const handleEmailReport = async () => {
+    if (!recipientEmail || !recipientEmail.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    setSending(true);
+    try {
+      const response = await api.post('/email-report', null, {
+        params: { 
+          username, 
+          email: recipientEmail 
+        }
+      });
+      
+      alert('📧 Email report sent successfully! Check your inbox.');
+      setEmailDialogOpen(false);
+      setRecipientEmail(''); // Clear the input
+    } catch (error: any) {
+      console.error('Email error:', error);
+      alert(error.message || 'Failed to send email. Please try again.');
+    } finally {
+      setSending(false);
     }
   };
 
@@ -133,6 +162,82 @@ export default function ResultsPage() {
               <Share2 className="w-4 h-4" />
               <span>Share</span>
             </button>
+            <button
+  onClick={() => setEmailDialogOpen(true)}
+  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+>
+  <Mail className="w-4 h-4" />
+  <span>Email Report</span>
+  {emailDialogOpen && (
+  <div 
+    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+    onClick={() => setEmailDialogOpen(false)}
+  >
+    <div 
+      className="bg-white dark:bg-gray-800 rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-center mb-6">
+        <Mail className="w-6 h-6 text-blue-600 mr-3" />
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Email Report</h3>
+      </div>
+      
+      <p className="text-gray-600 dark:text-gray-400 mb-4">
+        Send the complete analysis report to your email. The report includes:
+      </p>
+      
+      <ul className="text-sm text-gray-600 dark:text-gray-400 mb-6 space-y-1">
+        <li>✓ Authenticity score and assessment</li>
+        <li>✓ All red flags and concerns</li>
+        <li>✓ Profile statistics</li>
+        <li>✓ Hiring recommendation</li>
+      </ul>
+      
+      <input
+        type="email"
+        value={recipientEmail}
+        onChange={(e) => setRecipientEmail(e.target.value)}
+        placeholder="your-email@example.com"
+        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg mb-6 text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        autoFocus
+      />
+      
+      <div className="flex space-x-4">
+        <button
+          onClick={handleEmailReport}
+          disabled={sending || !recipientEmail}
+          className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
+            sending || !recipientEmail
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg'
+          }`}
+        >
+          {sending ? (
+            <span className="flex items-center justify-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Sending...
+            </span>
+          ) : (
+            '📧 Send Email'
+          )}
+        </button>
+        <button
+          onClick={() => {
+            setEmailDialogOpen(false);
+            setRecipientEmail('');
+          }}
+          className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white py-3 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+</button>
             
             <div className="relative group">
               <button className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:shadow-md transition-all">
@@ -178,6 +283,21 @@ export default function ResultsPage() {
               </p>
             </div>
           </div>
+
+          {/* AI Insights Section */}
+          {data.ai_insights && (
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+              <AIInsights 
+                insights={{
+                  summary: data.ai_insights.summary,
+                  generated_by: data.ai_insights.generated_by,
+                  confidence: data.ai_insights.confidence,
+                }}
+                recommendation={data.ai_insights.recommendation}
+                behaviorPatterns={data.ai_insights.behavior_patterns}
+              />
+            </div>
+          )}
 
           {/* Red Flags Section */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">

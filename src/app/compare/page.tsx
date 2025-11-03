@@ -27,10 +27,22 @@ export default function ComparePage() {
         githubAPI.analyzeProfile(username2),
       ]);
       
-      setData1(result1);
-      setData2(result2);
+      console.log('Result 1:', result1);
+      console.log('Result 2:', result2);
+      
+      // Handle different response structures
+      const processedData1 = result1.data || result1;
+      const processedData2 = result2.data || result2;
+      
+      console.log('Processed Data 1:', processedData1);
+      console.log('Processed Data 2:', processedData2);
+      
+      setData1(processedData1);
+      setData2(processedData2);
     } catch (error: any) {
+      console.error('Compare error:', error);
       alert(error.message);
+      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -139,6 +151,15 @@ export default function ComparePage() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8"
           >
+            {/* Debug Info - Remove this after fixing */}
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-xs">
+              <p className="font-bold mb-2">Debug Info:</p>
+              <p>Data1 keys: {Object.keys(data1).join(', ')}</p>
+              <p>Data2 keys: {Object.keys(data2).join(', ')}</p>
+              <p>Profile1 repos: {data1.profile?.public_repos ?? 'undefined'}</p>
+              <p>Profile2 repos: {data2.profile?.public_repos ?? 'undefined'}</p>
+            </div>
+
             {/* Header with usernames */}
             <div className="grid grid-cols-3 gap-4 items-center mb-8">
               <div className="text-center">

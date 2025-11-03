@@ -100,6 +100,12 @@ export const githubAPI = {
     const response = await api.get('/health/detailed');
     return response.data;
   },
+
+  // AI-powered analysis
+  analyzeWithAI: async (username: string) => {
+    const response = await api.get(`/analyze-ai/${username}`);
+    return response.data;
+  },
 };
 
 export default api;

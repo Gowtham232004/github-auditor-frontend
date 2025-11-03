@@ -77,6 +77,14 @@ export interface ProfileAnalysis {
   };
 }
 
+export interface AIInsight {
+  summary: string;
+  generated_by: string;
+  confidence: 'high' | 'medium' | 'low';
+  recommendation?: string;
+  behavior_patterns?: string;
+}
+
 export interface DeepAnalysis {
   username: string;
   profile: GitHubProfile;
@@ -94,4 +102,5 @@ export interface DeepAnalysis {
   overall_authenticity_score: number;
   analysis_time_seconds: number;
   analyzed_at: string;
+  ai_insights?: AIInsight;
 }
