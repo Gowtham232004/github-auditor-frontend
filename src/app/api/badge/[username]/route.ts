@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ username: string }> }
+  context: { params: Promise<{ username: string }> }
 ) {
-  const { username } = await params;
+  const { username } = await context.params;
   
   // Fetch analysis from backend
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
